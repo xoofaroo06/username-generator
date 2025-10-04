@@ -18,6 +18,8 @@
     "lucide-react": "^0.268.0"
   },
   "devDependencies": {
-    "typescript": "^5.2.2"
-  }
-}
+    "typescript": "^5.2.2",
+    "@types/react": "^18.2.0",
+    "@types/node": "^20.4.2"
+  },
+  
