@@ -1,119 +1,119 @@
 'use client';
-import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Star, Copy } from 'lucide-react';
 
-function randomElement(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+import { useState } from 'react';
+
+const adjectives = ['Quick','Brave','Clever','Bold'];
+const nouns = ['Tiger','Eagle','Lion','Fox'];
+const letters = 'abcdefghijklmnopqrstuvwxyz';
+const fantasyPrefixes = ['Dragon','Wizard','Elf','Dwarf'];
+const fantasySuffixes = ['rider','king','mage','hunter'];
+const techPrefixes = ['Cyber','Quantum','Matrix','Nano'];
+const techSuffixes = ['Tech','Pro','Guru','Bot'];
+const cutePrefixes = ['Fluffy','Panda','Kitty','Bunny'];
+const cuteSuffixes = ['Bear','Puff','Bee','Pop'];
+
+function randomElement(arr:string[]) {return arr[Math.floor(Math.random()*arr.length)];}
 
 function generateMeaningful() {
-  const adjectives = ['Quick','Silent','Brave','Nimble','Mighty','Happy','Clever'];
-  const nouns = ['Tiger','Eagle','Lion','Wolf','Fox','Hawk','Bear'];
-  return Array.from({ length: 10 }, () => `${randomElement(adjectives)}${randomElement(nouns)}${Math.floor(Math.random()*100)}`);
+  return Array.from({length:10},() => `${randomElement(adjectives)}${randomElement(nouns)}${Math.floor(Math.random()*100)}`);
 }
 
 function generateGibberish() {
-  const letters = 'abcdefghijklmnopqrstuvwxyz';
-  return Array.from({ length: 10 }, () => {
-    let str = '';
-    for (let i = 0; i < 8; i++) {
-      str += letters[Math.floor(Math.random() * letters.length)];
-    }
-    return str;
+  return Array.from({length:10},() => {
+    let len = 5 + Math.floor(Math.random()*5);
+    let s = '';
+    for (let i=0; i<len; i++) s += letters[Math.floor(Math.random()*letters.length)];
+    return s;
   });
 }
 
 function generateNumeric() {
-  return Array.from({ length: 10 }, () => Math.floor(10000000 + Math.random() * 90000000).toString());
+  return Array.from({length:10},() => Math.floor(100000 + Math.random()*900000).toString());
 }
 
 function generateFantasy() {
-  const prefixes = ['Dragon','Phoenix','Wizard','Elf','Dwarf','Knight','Fairy'];
-  const suffixes = ['Slayer','Rider','Lord','Hunter','Walker','Mage'];
-  return Array.from({ length: 10 }, () => `${randomElement(prefixes)}${randomElement(suffixes)}`);
+  return Array.from({length:10},() => `${randomElement(fantasyPrefixes)}${randomElement(fantasySuffixes)}`);
 }
 
 function generateTechy() {
-  const prefixes = ['Cyber','Quantum','Neo','Byte','Pixel','Data','Robo'];
-  const suffixes = ['Guru','Ninja','Master','Hero','Wizard','Coder'];
-  return Array.from({ length: 10 }, () => `${randomElement(prefixes)}${randomElement(suffixes)}`);
+  return Array.from({length:10},() => `${randomElement(techPrefixes)}${randomElement(techSuffixes)}${Math.floor(Math.random()*100)}`);
 }
 
 function generateCute() {
-  const adjectives = ['Fluffy','Sparkly','Lovely','Sunny','Cheery','Sweet'];
-  const animals = ['Bunny','Kitty','Panda','Puppy','Duck','Bear'];
-  return Array.from({ length: 10 }, () => `${randomElement(adjectives)}${randomElement(animals)}`);
+  return Array.from({length:10},() => `${randomElement(cutePrefixes)}${randomElement(cuteSuffixes)}`);
 }
 
 const categories = [
-  { title: 'Meaningful Names', generator: generateMeaningful },
-  { title: 'Gibberish Names', generator: generateGibberish },
-  { title: 'Numeric Names', generator: generateNumeric },
-  { title: 'Fantasy Names', generator: generateFantasy },
-  { title: 'Techy Names', generator: generateTechy },
-  { title: 'Cute Names', generator: generateCute },
+  {id:'meaningful',label:'Meaningful',gen:generateMeaningful},
+  {id:'gibberish',label:'Gibberish',gen:generateGibberish},
+  {id:'numeric',label:'Numeric',gen:generateNumeric},
+  {id:'fantasy',label:'Fantasy',gen:generateFantasy},
+  {id:'techy',label:'Techy',gen:generateTechy},
+  {id:'cute',label:'Cute',gen:generateCute},
 ];
 
 export default function Page() {
-  const [windows, setWindows] = useState(categories.map(cat => ({ title: cat.title, names: cat.generator() })));
-  const [best, setBest] = useState([]);
+  const [names,setNames] = useState(() => {
+    const obj:any = {};
+    categories.forEach(c => obj[c.id] = c.gen());
+    return obj;
+  });
+  const [best,setBest] = useState<string[]>([]);
+  const [showBest,setShowBest] = useState(false);
 
-  const regenerate = (index) => {
-    setWindows(prev => prev.map((w, i) => {
-      if (i === index) return { ...w, names: categories[i].generator() };
-      return w;
-    }));
+  const regenerate = (id:string) => {
+    setNames((prev:any) => ({...prev, [id]: categories.find(c => c.id===id)!.gen()}));
   };
 
-  const togglePick = (name) => {
-    setBest(prev => prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]);
+  const toggleBest = (name:string) => {
+    setBest(prev => prev.includes(name) ? prev.filter(n => n!==name) : [...prev,name]);
   };
 
-  const copyName = (name) => {
-    navigator.clipboard.writeText(name);
+  const copy = (name:string) => {
+    navigator.clipboard.writeText(name).then(() => alert('Copied!'));
   };
-
   return (
-    <div className="p-6 grid gap-4 md:grid-cols-2">
-      {windows.map((win, i) => (
-        <Card key={i} className="overflow-hidden">
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="font-semibold">{win.title}</h2>
-              <Button variant="outline" onClick={() => regenerate(i)}>Generate</Button>
-            </div>
-            <ul className="space-y-1 max-h-40 overflow-y-auto">
-              {win.names.map(name => (
-                <li key={name} className="flex justify-between items-center text-sm">
+    <main className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Random Username Generator</h1>
+      <button onClick={() => setShowBest(!showBest)} className="mb-4 px-3 py-1 bg-blue-600 text-white rounded">
+        {showBest ? 'Hide Best Picks' : 'Show Best Picks'}
+      </button>
+      {showBest && (
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold mb-2">Best Picks</h2>
+          {best.length ? (
+            <ul>
+              {best.map(name => (
+                <li key={name} className="flex justify-between items-center p-1 bg-gray-100 mb-1 rounded">
                   <span>{name}</span>
-                  <div className="flex space-x-1">
-                    <Button variant="ghost" size="icon" onClick={() => copyName(name)}>
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => togglePick(name)}>
-                      <Star className={`w-4 h-4 ${best.includes(name) ? 'fill-yellow-400' : ''}`} />
-                    </Button>
+                  <button onClick={() => copy(name)} className="text-blue-600 text-sm">Copy</button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-600">No picks yet.</p>
+          )}
+        </div>
+      )}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {categories.map(cat => (
+          <div key={cat.id} className="p-4 bg-white rounded shadow">
+            <h3 className="font-semibold mb-2">{cat.label}</h3>
+            <button onClick={() => regenerate(cat.id)} className="mb-2 px-3 py-1 bg-green-600 text-white text-sm rounded">Generate 10</button>
+            <ul>
+              {names[cat.id].map((n: string) => (
+                <li key={n} className="flex justify-between items-center p-1 border-b last:border-none">
+                  <span>{n}</span>
+                  <div className="flex gap-2 items-center">
+                    <button onClick={() => copy(n)} className="text-blue-600 text-sm">Copy</button>
+                    <button onClick={() => toggleBest(n)} className="text-sm">{best.includes(n) ? '★' : '☆'}</button>
                   </div>
                 </li>
               ))}
             </ul>
-          </CardContent>
-        </Card>
-      ))}
-      {best.length > 0 && (
-        <Card className="md:col-span-2">
-          <CardContent className="p-4">
-            <h2 className="font-semibold mb-2">Best Picks</h2>
-            <ul className="flex flex-wrap gap-2 text-sm">
-              {best.map(name => (
-                <li key={name} className="px-2 py-1 bg-gray-200 rounded">{name}</li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </div>
+        ))}
+      </div>
+    </main>
   );
 }
